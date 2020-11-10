@@ -1,0 +1,19 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t malith/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true malith/react-test npm run test
+after_success:
+  - docker build -t malith/multi-client ./client
+  - docker build -t malith/multi-nginx ./nginx
+  - docker build -t malith/multi-server ./server
+  - docker build -t malith/multi-worker ./worker
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push to docker login
+  - docker push malith/multi-client
+  - docker push malith/multi-nginx
+  - docker push malith/multi-server
+  - docker push malith/multi-worker
